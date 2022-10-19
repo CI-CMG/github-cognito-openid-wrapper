@@ -38,8 +38,104 @@ Parameters:
     MinLength: 1
   StageNameParameter:
     Type: String
+  RolePermissionsBoundary:
+    Description: An optional permissions boundary to associate with a role
+    Type: String
+
+Conditions:
+  HasPermissionsBoundary:
+    Fn::Not:
+      - Fn::Equals:
+          - ""
+          - !Ref RolePermissionsBoundary
 
 Resources:
+  OpenIdDiscoveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary:
+        Fn::If:
+          - HasPermissionsBoundary
+          - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${RolePermissionsBoundary}
+          - !Ref AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  AuthorizeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary:
+        Fn::If:
+          - HasPermissionsBoundary
+          - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${RolePermissionsBoundary}
+          - !Ref AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  TokenRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary:
+        Fn::If:
+          - HasPermissionsBoundary
+          - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${RolePermissionsBoundary}
+          - !Ref AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  UserInfoRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary:
+        Fn::If:
+          - HasPermissionsBoundary
+          - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${RolePermissionsBoundary}
+          - !Ref AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  JwksRole:
+    Type: AWS::IAM::Role
+    Properties:
+      PermissionsBoundary:
+        Fn::If:
+          - HasPermissionsBoundary
+          - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${RolePermissionsBoundary}
+          - !Ref AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
   GithubOAuthApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -50,6 +146,7 @@ Resources:
     Properties:
       CodeUri: ./dist-lambda
       Handler: openIdConfiguration.handler
+      Role: !GetAtt OpenIdDiscoveryRole.Arn
       Events:
         GetResource:
           Type: Api
@@ -62,6 +159,7 @@ Resources:
     Properties:
       CodeUri: ./dist-lambda
       Handler: authorize.handler
+      Role: !GetAtt AuthorizeRole.Arn
       Events:
         GetResource:
           Type: Api
@@ -74,6 +172,7 @@ Resources:
     Properties:
       CodeUri: ./dist-lambda
       Handler: token.handler
+      Role: !GetAtt TokenRole.Arn
       Events:
         GetResource:
           Type: Api
@@ -92,6 +191,7 @@ Resources:
     Properties:
       CodeUri: ./dist-lambda
       Handler: userinfo.handler
+      Role: !GetAtt UserInfoRole.Arn
       Events:
         GetResource:
           Type: Api
@@ -110,6 +210,7 @@ Resources:
     Properties:
       CodeUri: ./dist-lambda
       Handler: jwks.handler
+      Role: !GetAtt JwksRole.Arn
       Events:
         GetResource:
           Type: Api

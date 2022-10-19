@@ -8,6 +8,9 @@ export COGNITO_REDIRECT_URI=# https://<Your Cognito Domain>/oauth2/idpresponse
 export GITHUB_API_URL=https://api.github.com
 export GITHUB_LOGIN_URL=https://github.com
 
+#Change if permissions boundary is needed to create IAM roles
+export ROLE_PERMISSIONS_BOUNDARY=# <Role Permissions Boundary>
+
 # Alternate URLs if used with GitHub Enterprise
 # GITHUB_API_URL=# https://<GitHub Enterprise Host>/api/v3
 # GITHUB_LOGIN_URL=# https://<GitHub Enterprise Host>
